@@ -1,0 +1,4 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024"><defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a3d"/><stop offset="1" stop-color="#d9480f"/></linearGradient></defs>
+<rect width="1024" height="1024" rx="0" fill="url(#g3)"/>
+<rect x="250" y="640" width="120" height="140" rx="30" fill="#fff" opacity=".6"/><rect x="452" y="580" width="120" height="200" rx="30" fill="#fff" opacity=".8"/><rect x="654" y="520" width="120" height="260" rx="30" fill="#fff"/>
+<path d="M250 470 L470 330 L600 400 L800 230" fill="none" stroke="#ffe066" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/><path d="M700 220 L810 222 L800 330" fill="none" stroke="#ffe066" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/></svg>

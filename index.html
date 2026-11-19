@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flousna</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Flousna">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="flousna-icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="config.js"></script>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#16191d;--mute:#6b7280;--line:#e7e9ee;--good:#1a7f37;--good-bg:#e3f4e8;--bad:#c62828;--bad-bg:#fde7e7;--warn:#a85b00;--warn-bg:#fff1d6;--accent:#e8590c;--accent2:#ff8a3d;--bar:#eceef2;--shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#1a1d23;--ink:#eef0f3;--mute:#9aa3ae;--line:#2a2f37;--good:#4cc36b;--good-bg:#173323;--bad:#ff6b6b;--bad-bg:#3a1c1c;--warn:#f0a43a;--warn-bg:#3a2a12;--accent:#ff8a3d;--accent2:#ffb07a;--bar:#2a2f37;--shadow:none}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+body{padding:calc(env(safe-area-inset-top) + 8px) 16px calc(env(safe-area-inset-bottom) + 84px)}
+.num{font-variant-numeric:tabular-nums}
+header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 14px}
+.brand{display:flex;align-items:center;gap:10px}.brand img{width:34px;height:34px;border-radius:9px}
+.brand h1{font-size:22px;margin:0;letter-spacing:-.01em}.brand .sub{font-size:12px;color:var(--mute)}
+.iconbtn{border:0;background:var(--card);color:var(--ink);width:38px;height:38px;border-radius:12px;box-shadow:var(--shadow);font-size:18px;cursor:pointer}
+.iconbtn.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--mute);margin:22px 4px 8px;font-weight:600}
+.card{background:var(--card);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px}
+.hero{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border-radius:22px;padding:18px 18px 16px;box-shadow:0 6px 18px rgba(232,89,12,.25)}
+.hero .l{font-size:13px;opacity:.9}.hero .v{font-size:34px;font-weight:750;letter-spacing:-.02em;margin-top:2px}.hero .u{font-size:14px;font-weight:600;opacity:.85}
+.hero .row2{display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:.95;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--card);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);min-width:0}
+.tile .l{font-size:12px;color:var(--mute)}.tile .v{font-size:20px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tile .s{font-size:12px;color:var(--mute)}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.mute{color:var(--mute);font-size:13px}.small{font-size:12px}
+.bar{position:relative;height:8px;background:var(--bar);border-radius:6px;overflow:visible;margin:8px 0 4px}
+.bar>i{display:block;height:100%;border-radius:6px;max-width:100%}
+.bar>b{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink);opacity:.35;border-radius:2px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.p-good{color:var(--good);background:var(--good-bg)}.p-bad{color:var(--bad);background:var(--bad-bg)}.p-warn{color:var(--warn);background:var(--warn-bg)}.p-mute{color:var(--mute);background:var(--bar)}
+.c-good{background:var(--good)}.c-bad{background:var(--bad)}.c-warn{background:var(--warn)}.c-acc{background:var(--accent)}.c-mute{background:var(--mute);opacity:.5}
+.t-good{color:var(--good)}.t-bad{color:var(--bad)}.t-warn{color:var(--warn)}
+.list{background:var(--card);border-radius:18px;padding:2px 16px;box-shadow:var(--shadow)}
+.li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}.li .t{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.li .s{font-size:12px;color:var(--mute)}
+.li>div:first-child{min-width:0;flex:1}.li .a{font-weight:600;text-align:right;white-space:nowrap}
+.line{padding:12px 0;border-bottom:1px solid var(--line)}.line:last-child{border-bottom:0}
+.line .n{font-weight:600;font-size:14px}.line .r{font-size:12px;color:var(--mute);display:flex;justify-content:space-between}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin:0 -16px;padding-left:16px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{border:0;background:var(--card);color:var(--ink);box-shadow:var(--shadow);border-radius:999px;padding:7px 13px;font-size:13px;white-space:nowrap;cursor:pointer}
+.chip.on{background:var(--accent);color:#fff}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+nav{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;padding:6px 8px calc(env(safe-area-inset-bottom) + 6px)}
+nav button{flex:1;border:0;background:none;color:var(--mute);font-size:11px;font-weight:600;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+nav button svg{width:24px;height:24px}nav button.on{color:var(--accent)}
+.hidden{display:none!important}
+#login{max-width:380px;margin:12vh auto 0;text-align:center}
+#login img{width:84px;height:84px;border-radius:20px;box-shadow:0 8px 24px rgba(232,89,12,.3)}
+#login h1{margin:14px 0 4px;font-size:28px}#login p{color:var(--mute);margin:0 0 22px}
+input{width:100%;font:inherit;font-size:17px;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);margin-bottom:10px;outline:none}
+input:focus{border-color:var(--accent)}
+.btn{width:100%;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:700;font-size:16px;color:#fff;background:var(--accent);cursor:pointer}
+.btn:disabled{opacity:.6}.link{background:none;border:0;color:var(--accent);font:inherit;font-size:14px;margin-top:12px;cursor:pointer}
+.msg{min-height:20px;font-size:14px;margin-top:10px}
+.empty{padding:18px 0;text-align:center;color:var(--mute)}
+.foot{text-align:center;color:var(--mute);font-size:12px;margin-top:24px}
+</style>
+</head>
+<body>
+
+<section id="login" class="hidden">
+  <img src="flousna-icon-512.png" alt="">
+  <h1>Flousna</h1>
+  <p>Our money, in one place</p>
+  <div id="stepEmail">
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="Your email" autocapitalize="off">
+    <button class="btn" id="sendBtn">Send me a code</button>
+  </div>
+  <div id="stepCode" class="hidden">
+    <p class="mute" id="codeNote" style="margin-bottom:12px"></p>
+    <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6 digit code" maxlength="6" style="text-align:center;letter-spacing:.3em">
+    <button class="btn" id="verifyBtn">Sign in</button>
+    <button class="link" id="backBtn">Use another email</button>
+  </div>
+  <div class="msg" id="loginMsg"></div>
+</section>
+
+<section id="app" class="hidden">
+  <header>
+    <div class="brand"><img src="flousna-icon-192.png" alt=""><div><h1>Flousna</h1><div class="sub" id="updated">Loading…</div></div></div>
+    <button class="iconbtn" id="refreshBtn" aria-label="Refresh">↻</button>
+  </header>
+  <main id="view"></main>
+  <div class="foot" id="foot"></div>
+</section>
+
+<nav id="nav" class="hidden">
+  <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+  <button data-tab="budget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Budget</button>
+  <button data-tab="spend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Spending</button>
+</nav>
+
+<script>
+(function () {
+  var API = window.FLOUSNA_API;
+  var $ = function (id) { return document.getElementById(id); };
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+  var state = {data: null, tab: store.get('fl-tab') || 'home', cat: null, email: null};
+
+  function call(body) {
+    return fetch(API, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(body), redirect: 'follow'})
+      .then(function (r) { return r.json(); });
+  }
+  var esc = function (x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); };
+  var fmt = function (n, dp) { n = +n || 0; return (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0}); };
+  var d = function (x) { return x ? new Date(x) : null; };
+  var day = function (x) { x = d(x); return x ? x.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}) : ''; };
+  var monthName = function (x) { x = d(x); return x ? x.toLocaleDateString('en-GB', {month: 'long', year: 'numeric'}) : ''; };
+  var pillFor = function (s) {
+    var k = /over/i.test(s) ? 'p-bad' : /watch|not yet/i.test(s) ? 'p-warn' : /on track|paid/i.test(s) ? 'p-good' : 'p-mute';
+    return s ? '<span class="pill ' + k + '">' + esc(s) + '</span>' : '';
+  };
+  var colorFor = function (s) { return /over/i.test(s) ? 'c-bad' : /watch/i.test(s) ? 'c-warn' : /no target/i.test(s) ? 'c-mute' : 'c-good'; };
+  var CAT_COLORS = ['#e8590c', '#3b5bdb', '#2b8a3e', '#c2255c', '#7048e8', '#1098ad', '#e67700', '#5c940d', '#ae3ec9', '#0b7285', '#d6336c', '#495057'];
+
+  // ------------------------------------------------------------ sign in
+  function showLogin(msg) {
+    $('app').classList.add('hidden'); $('nav').classList.add('hidden'); $('login').classList.remove('hidden');
+    $('loginMsg').textContent = msg || '';
+    var em = store.get('fl-email'); if (em) $('email').value = em;
+  }
+  $('sendBtn').onclick = function () {
+    var em = $('email').value.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(em)) { $('loginMsg').textContent = 'Type your email first.'; return; }
+    $('sendBtn').disabled = true; $('loginMsg').textContent = 'Sending…';
+    call({flousna: 'code', email: em}).then(function (r) {
+      $('sendBtn').disabled = false;
+      if (!r.ok) { $('loginMsg').textContent = r.error || 'Could not send the code.'; return; }
+      store.set('fl-email', em); state.email = em;
+      $('stepEmail').classList.add('hidden'); $('stepCode').classList.remove('hidden');
+      $('codeNote').textContent = 'If ' + em + ' is on the list, a code is on its way. Check your inbox.';
+      $('loginMsg').textContent = ''; $('code').focus();
+    }).catch(function () { $('sendBtn').disabled = false; $('loginMsg').textContent = 'No connection. Try again.'; });
+  };
+  $('verifyBtn').onclick = function () {
+    $('verifyBtn').disabled = true; $('loginMsg').textContent = 'Checking…';
+    call({flousna: 'verify', email: state.email || $('email').value.trim().toLowerCase(), code: $('code').value}).then(function (r) {
+      $('verifyBtn').disabled = false;
+      if (!r.ok) { $('loginMsg').textContent = r.error || 'That did not work.'; return; }
+      store.set('fl-session', r.session); $('code').value = ''; load();
+    }).catch(function () { $('verifyBtn').disabled = false; $('loginMsg').textContent = 'No connection. Try again.'; });
+  };
+  $('code').addEventListener('input', function () { if ($('code').value.replace(/\D/g, '').length === 6) $('verifyBtn').click(); });
+  $('backBtn').onclick = function () { $('stepCode').classList.add('hidden'); $('stepEmail').classList.remove('hidden'); $('loginMsg').textContent = ''; };
+
+  // ------------------------------------------------------------ data
+  function load() {
+    var s = store.get('fl-session');
+    if (!s) { showLogin(); return; }
+    $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('nav').classList.remove('hidden');
+    $('refreshBtn').classList.add('spin');
+    call({flousna: 'data', session: s}).then(function (r) {
+      $('refreshBtn').classList.remove('spin');
+      if (r.auth === false) { store.del('fl-session'); showLogin('Please sign in again.'); return; }
+      if (!r.ok) { $('updated').textContent = r.error || 'Could not load'; return; }
+      state.data = r.data; state.email = r.email; render();
+    }).catch(function () { $('refreshBtn').classList.remove('spin'); $('updated').textContent = 'Offline. Tap ↻ to retry.'; });
+  }
+  $('refreshBtn').onclick = load;
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && state.data && Date.now() - state.loadedAt > 60000) load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (b) {
+    b.onclick = function () { state.tab = b.dataset.tab; store.set('fl-tab', state.tab); render(); window.scrollTo(0, 0); };
+  });
+
+  function render() {
+    state.loadedAt = Date.now();
+    var D = state.data;
+    $('updated').textContent = 'Updated ' + new Date(D.holdings.now).toLocaleString('en-GB', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
+    Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (b) { b.classList.toggle('on', b.dataset.tab === state.tab); });
+    $('view').innerHTML = state.tab === 'budget' ? budgetView(D) : state.tab === 'spend' ? spendView(D) : homeView(D);
+    $('foot').innerHTML = 'Signed in as ' + esc(state.email) + ' · <button class="link" id="logout" style="margin:0;font-size:12px">Sign out</button>';
+    $('logout').onclick = function () { call({flousna: 'logout', session: store.get('fl-session')}).catch(function () {}); store.del('fl-session'); showLogin(); };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cat]'), function (c) {
+      c.onclick = function () { state.cat = c.dataset.cat || null; render(); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (c) {
+      c.onclick = function () { state.tab = c.dataset.go; store.set('fl-tab', state.tab); render(); window.scrollTo(0, 0); };
+    });
+  }
+
+  // ------------------------------------------------------------ home
+  function homeView(D) {
+    var H = D.holdings, B = D.budget, h = [];
+    var cash = {}, cashAed = 0, owed = 0, dueNow = 0;
+    H.accts.forEach(function (a) { cash[a.cur] = (cash[a.cur] || 0) + a.bal; cashAed += a.aed; });
+    H.cards.forEach(function (c) { owed += c.owed; dueNow += c.stillDue; });
+    var G = H.gold, M = H.mort;
+    var mortAed = M && M.leftAed != null ? M.leftAed : 0, homeAed = M ? M.homeAed : 0;
+    var worth = cashAed + G.value + homeAed - owed - mortAed;
+    h.push('<div class="hero"><div class="l">Net worth</div><div class="v num">' + fmt(worth) + ' <span class="u">AED</span></div>',
+      '<div class="row2"><span>Cash + gold + home</span><span>minus cards and mortgage</span></div></div>');
+    if (B) {
+      var T = B.total, pct = T.target ? T.spent / T.target : 0;
+      h.push('<h2>' + esc(monthName(B.month)) + ' budget</h2><div class="card" data-go="budget" style="cursor:pointer">',
+        '<div class="row"><div><span class="num" style="font-size:24px;font-weight:750">' + fmt(T.spent) + '</span> <span class="mute">of ' + fmt(T.target) + ' AED</span></div>' + pillFor(T.status) + '</div>',
+        '<div class="bar"><i class="' + colorFor(T.status) + '" style="width:' + Math.min(100, pct * 100).toFixed(1) + '%"></i><b style="left:' + (B.pace * 100).toFixed(1) + '%"></b></div>',
+        '<div class="row mute small"><span>' + Math.round(pct * 100) + '% used</span><span>' + Math.round(B.pace * 100) + '% of the month gone</span></div>');
+      var over = B.lines.filter(function (l) { return /over/i.test(l.status); });
+      if (over.length) h.push('<div class="mute small" style="margin-top:8px">Over: ' + over.map(function (l) { return esc(l.name); }).join(', ') + '</div>');
+      h.push('</div>');
+    }
+    h.push('<div class="grid">',
+      tile('Cash in accounts', fmt(cashAed), 'AED'), tile('Gold value', fmt(G.value), G.grams ? fmt(G.grams, 1) + ' g · ' + (G.value - G.cost >= 0 ? '+' : '') + fmt(G.value - G.cost) : 'AED'),
+      tile('Owed on cards', fmt(owed), dueNow > 0 ? '<span class="t-bad">' + fmt(dueNow) + ' due now</span>' : 'Nothing due now'),
+      tile('Mortgage left', fmt(mortAed), M && M.paidPct != null ? Math.round(M.paidPct * 100) + '% paid off' : 'AED'), '</div>');
+    h.push('<h2>Cash by currency</h2><div class="grid">');
+    Object.keys(cash).sort(function (a, b) { return a === 'AED' ? -1 : b === 'AED' ? 1 : a < b ? -1 : 1; }).forEach(function (c) {
+      h.push(tile(c, fmt(cash[c]), c === 'AED' ? '' : '≈ ' + fmt(cash[c] * (H.fx[c] || 0)) + ' AED'));
+    });
+    h.push('</div>');
+    h.push('<h2>Credit cards</h2><div class="list">');
+    H.cards.forEach(function (c) {
+      var used = c.limit ? Math.min(1, Math.max(0, c.owed / c.limit)) : 0;
+      h.push('<div class="line"><div class="row"><span class="n">' + esc(c.id) + '</span><span class="num" style="font-weight:700">' + fmt(c.owed) + '</span></div>',
+        '<div class="bar"><i class="' + (used > .7 ? 'c-bad' : 'c-acc') + '" style="width:' + (used * 100).toFixed(1) + '%"></i></div>',
+        '<div class="r"><span>' + (c.stillDue > 0 ? '<span class="t-bad">' + fmt(c.stillDue, 2) + ' due ' + esc(day(c.due)) + '</span>' : 'Nothing due') + '</span><span>' + fmt(c.avail) + ' available</span></div>',
+        c.target ? '<div class="r" style="margin-top:4px"><span>Spend target ' + fmt(c.spent) + ' / ' + fmt(c.target) + '</span>' + pillFor(c.status) + '</div>' : '', '</div>');
+    });
+    h.push('</div><h2>Bank accounts</h2><div class="list">');
+    H.accts.slice().sort(function (x, y) { return y.aed - x.aed; }).forEach(function (a) {
+      h.push('<div class="li"><div><div class="t">' + esc(a.name) + '</div><div class="s">' + esc(a.bank) + (/\d/.test(a.last4) ? ' ··' + esc(String(a.last4).slice(-4)) : '') + (a.asOf ? ' · ' + esc(day(a.asOf)) : '') + '</div></div>',
+        '<div class="a num">' + fmt(a.bal) + ' <span class="s">' + esc(a.cur) + '</span>' + (a.cur !== 'AED' ? '<div class="s">≈ ' + fmt(a.aed) + ' AED</div>' : '') + '</div></div>');
+    });
+    h.push('</div>');
+    return h.join('');
+  }
+  function tile(l, v, s) { return '<div class="tile"><div class="l">' + esc(l) + '</div><div class="v num">' + v + '</div><div class="s">' + (s || '') + '</div></div>'; }
+
+  // ------------------------------------------------------------ budget
+  function budgetView(D) {
+    var B = D.budget, h = [];
+    if (!B) return '<div class="empty">No Budget tab yet.</div>';
+    var T = B.total;
+    h.push('<div class="card"><div class="mute">' + esc(monthName(B.month)) + '</div>',
+      '<div class="row" style="margin-top:2px"><div><span class="num" style="font-size:28px;font-weight:750">' + fmt(T.spent) + '</span> <span class="mute">of ' + fmt(T.target) + '</span></div>' + pillFor(T.status) + '</div>',
+      '<div class="bar"><i class="' + colorFor(T.status) + '" style="width:' + Math.min(100, T.target ? T.spent / T.target * 100 : 0).toFixed(1) + '%"></i><b style="left:' + (B.pace * 100).toFixed(1) + '%"></b></div>',
+      '<div class="row mute small"><span>' + (T.left >= 0 ? fmt(T.left) + ' left' : '<span class="t-bad">' + fmt(-T.left) + ' over</span>') + '</span><span>Line = today</span></div></div>');
+    h.push('<h2>By budget line</h2><div class="list">');
+    B.lines.filter(function (l) { return l.target || l.spent; }).forEach(function (l) {
+      var q = /quarter/i.test(l.type), tgt = q ? l.target * 3 : l.target, used = q ? tgt - l.left : l.spent;
+      var w = tgt ? Math.min(100, used / tgt * 100) : (used ? 100 : 0);
+      h.push('<div class="line"><div class="row"><span class="n">' + esc(l.name) + '</span>' + pillFor(l.status) + '</div>',
+        '<div class="bar"><i class="' + colorFor(l.status) + '" style="width:' + w.toFixed(1) + '%"></i>' + (/variable/i.test(l.type) && tgt ? '<b style="left:' + (B.pace * 100).toFixed(1) + '%"></b>' : '') + '</div>',
+        '<div class="r"><span class="num">' + fmt(l.spent) + ' of ' + fmt(l.target) + (q ? ' · last 3 months ' + fmt(used) + ' of ' + fmt(tgt) : '') + '</span><span class="num">' + (l.left >= 0 ? fmt(l.left) + ' left' : '<span class="t-bad">' + fmt(-l.left) + ' over</span>') + '</span></div></div>');
+    });
+    h.push('</div><h2>Fixed payments</h2><div class="list">');
+    B.fixed.filter(function (f) { return f.budget || f.paid; }).forEach(function (f) {
+      h.push('<div class="li"><div><div class="t">' + esc(f.name) + '</div><div class="s">' + esc(f.paidBy) + ' · ' + esc(f.how) + '</div></div>',
+        '<div class="a"><div class="num">' + fmt(f.paid || f.budget) + '</div>' + pillFor(f.status) + '</div></div>');
+    });
+    h.push('</div>');
+    return h.join('');
+  }
+
+  // ------------------------------------------------------------ spending
+  function spendView(D) {
+    var h = [], cats = D.categories || [], rows = D.spending || [];
+    var total = cats.reduce(function (s, c) { return s + Math.max(0, c.spent); }, 0);
+    var colors = {};
+    cats.forEach(function (c, i) { colors[c.name] = CAT_COLORS[i % CAT_COLORS.length]; });
+    h.push('<div class="card"><div class="mute">' + esc(monthName(D.budget && D.budget.month)) + ' by category</div>');
+    h.push('<div style="display:flex;height:12px;border-radius:7px;overflow:hidden;margin:10px 0 12px;background:var(--bar)">');
+    cats.forEach(function (c) { if (c.spent > 0) h.push('<span style="width:' + (c.spent / total * 100).toFixed(2) + '%;background:' + colors[c.name] + '"></span>'); });
+    h.push('</div>');
+    cats.forEach(function (c) {
+      h.push('<div class="row" style="padding:5px 0;cursor:pointer" data-cat="' + esc(c.name) + '"><span><span class="dot" style="background:' + colors[c.name] + '"></span>' + esc(c.name) + ' <span class="mute small">' + c.count + '</span></span><span class="num" style="font-weight:600">' + fmt(c.spent) + '</span></div>');
+    });
+    h.push('</div><div class="chips"><button class="chip' + (state.cat ? '' : ' on') + '" data-cat="">All</button>');
+    cats.forEach(function (c) { h.push('<button class="chip' + (state.cat === c.name ? ' on' : '') + '" data-cat="' + esc(c.name) + '">' + esc(c.name) + '</button>'); });
+    h.push('</div>');
+    var list = rows.filter(function (r) { return !state.cat || r.cat === state.cat; });
+    h.push('<div class="list">');
+    if (!list.length) h.push('<div class="empty">Nothing here this month.</div>');
+    list.forEach(function (r) {
+      h.push('<div class="li"><div><div class="t">' + esc(r.desc) + '</div><div class="s"><span class="dot" style="background:' + (colors[r.cat] || '#999') + '"></span>' + esc(r.cat) + ' · ' + esc(day(r.date)) + ' · ' + esc(r.paidWith) + (r.who && r.who !== 'MO' && r.who !== 'Family' ? ' · ' + esc(r.who) : '') + '</div></div>',
+        '<div class="a num ' + (r.aed < 0 ? 't-good' : '') + '">' + fmt(r.aed, 2) + '</div></div>');
+    });
+    h.push('</div>');
+    return h.join('');
+  }
+
+  if (!API) { showLogin('Setup needed: the API address is missing in config.js.'); return; }
+  load();
+})();
+</script>
+</body>
+</html>
