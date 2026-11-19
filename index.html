@@ -26,7 +26,7 @@ header{display:flex;align-items:center;justify-content:space-between;margin:6px 
 .brand{display:flex;align-items:center;gap:10px}.brand img{width:34px;height:34px;border-radius:9px}
 .brand h1{font-size:22px;margin:0;letter-spacing:-.01em}.brand .sub{font-size:12px;color:var(--mute)}
 .iconbtn{border:0;background:var(--card);color:var(--ink);width:38px;height:38px;border-radius:12px;box-shadow:var(--shadow);font-size:18px;cursor:pointer}
-.iconbtn.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.iconbtn{display:flex;align-items:center;justify-content:center}.iconbtn svg{width:20px;height:20px}.iconbtn.spin svg{animation:spin .9s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 h2{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--mute);margin:22px 4px 8px;font-weight:600}
 .card{background:var(--card);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px}
 .hero{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border-radius:22px;padding:18px 18px 16px;box-shadow:0 6px 18px rgba(232,89,12,.25)}
@@ -67,6 +67,7 @@ input:focus{border-color:var(--accent)}
 .btn:disabled{opacity:.6}.link{background:none;border:0;color:var(--accent);font:inherit;font-size:14px;margin-top:12px;cursor:pointer}
 .msg{min-height:20px;font-size:14px;margin-top:10px}
 .empty{padding:18px 0;text-align:center;color:var(--mute)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:10px;font-size:13px;color:var(--mute)}.kv b{display:block;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
 .foot{text-align:center;color:var(--mute);font-size:12px;margin-top:24px}
 </style>
 </head>
@@ -92,7 +93,7 @@ input:focus{border-color:var(--accent)}
 <section id="app" class="hidden">
   <header>
     <div class="brand"><img src="flousna-icon-192.png" alt=""><div><h1>Flousna</h1><div class="sub" id="updated">Loading…</div></div></div>
-    <button class="iconbtn" id="refreshBtn" aria-label="Refresh">↻</button>
+    <button class="iconbtn" id="refreshBtn" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
   </header>
   <main id="view"></main>
   <div class="foot" id="foot"></div>
@@ -172,7 +173,7 @@ input:focus{border-color:var(--accent)}
       if (r.auth === false) { store.del('fl-session'); showLogin('Please sign in again.'); return; }
       if (!r.ok) { $('updated').textContent = r.error || 'Could not load'; return; }
       state.data = r.data; state.email = r.email; render();
-    }).catch(function () { $('refreshBtn').classList.remove('spin'); $('updated').textContent = 'Offline. Tap ↻ to retry.'; });
+    }).catch(function () { $('refreshBtn').classList.remove('spin'); $('updated').textContent = 'Offline. Tap refresh to retry.'; });
   }
   $('refreshBtn').onclick = load;
   document.addEventListener('visibilitychange', function () { if (!document.hidden && state.data && Date.now() - state.loadedAt > 60000) load(); });
@@ -198,46 +199,74 @@ input:focus{border-color:var(--accent)}
 
   // ------------------------------------------------------------ home
   function homeView(D) {
-    var H = D.holdings, B = D.budget, h = [];
+    var H = D.holdings, h = [], today = new Date();
     var cash = {}, cashAed = 0, owed = 0, dueNow = 0;
     H.accts.forEach(function (a) { cash[a.cur] = (cash[a.cur] || 0) + a.bal; cashAed += a.aed; });
     H.cards.forEach(function (c) { owed += c.owed; dueNow += c.stillDue; });
-    var G = H.gold, M = H.mort;
+    var G = H.gold, M = H.mort, usd = (H.fx && H.fx.USD) || 3.6725, OZ = 31.1034768;
     var mortAed = M && M.leftAed != null ? M.leftAed : 0, homeAed = M ? M.homeAed : 0;
     var worth = cashAed + G.value + homeAed - owed - mortAed;
-    h.push('<div class="hero"><div class="l">Net worth</div><div class="v num">' + fmt(worth) + ' <span class="u">AED</span></div>',
-      '<div class="row2"><span>Cash + gold + home</span><span>minus cards and mortgage</span></div></div>');
-    if (B) {
-      var T = B.total, pct = T.target ? T.spent / T.target : 0;
-      h.push('<h2>' + esc(monthName(B.month)) + ' budget</h2><div class="card" data-go="budget" style="cursor:pointer">',
-        '<div class="row"><div><span class="num" style="font-size:24px;font-weight:750">' + fmt(T.spent) + '</span> <span class="mute">of ' + fmt(T.target) + ' AED</span></div>' + pillFor(T.status) + '</div>',
-        '<div class="bar"><i class="' + colorFor(T.status) + '" style="width:' + Math.min(100, pct * 100).toFixed(1) + '%"></i><b style="left:' + (B.pace * 100).toFixed(1) + '%"></b></div>',
-        '<div class="row mute small"><span>' + Math.round(pct * 100) + '% used</span><span>' + Math.round(B.pace * 100) + '% of the month gone</span></div>');
-      var over = B.lines.filter(function (l) { return /over/i.test(l.status); });
-      if (over.length) h.push('<div class="mute small" style="margin-top:8px">Over: ' + over.map(function (l) { return esc(l.name); }).join(', ') + '</div>');
-      h.push('</div>');
-    }
-    h.push('<div class="grid">',
-      tile('Cash in accounts', fmt(cashAed), 'AED'), tile('Gold value', fmt(G.value), G.grams ? fmt(G.grams, 1) + ' g · ' + (G.value - G.cost >= 0 ? '+' : '') + fmt(G.value - G.cost) : 'AED'),
-      tile('Owed on cards', fmt(owed), dueNow > 0 ? '<span class="t-bad">' + fmt(dueNow) + ' due now</span>' : 'Nothing due now'),
-      tile('Mortgage left', fmt(mortAed), M && M.paidPct != null ? Math.round(M.paidPct * 100) + '% paid off' : 'AED'), '</div>');
+    h.push('<div class="tile"><div class="l">Net worth (cash + gold + home − cards − mortgage)</div><div class="v num ' + (worth < 0 ? 't-bad' : 't-good') + '" style="font-size:30px">' + fmt(worth) + ' <span class="s" style="font-size:13px">AED</span></div></div>',
+      '<div class="grid" style="margin-top:10px">',
+      tile('Cash in accounts', fmt(cashAed) + ' <span class="s">AED</span>'), tile('Gold value', fmt(G.value) + ' <span class="s">AED</span>'),
+      tile('Owed on cards', fmt(owed) + ' <span class="s">AED</span>'), tile('Mortgage left', fmt(mortAed) + ' <span class="s">AED</span>'), '</div>',
+      '<div class="tile" style="margin-top:10px"><div class="l">Due now on card statements</div><div class="v num ' + (dueNow > 0 ? 't-bad' : 't-good') + '">' + (dueNow > 0 ? fmt(dueNow, 2) + ' <span class="s">AED</span>' : 'Nothing due') + '</div></div>');
+
     h.push('<h2>Cash by currency</h2><div class="grid">');
-    Object.keys(cash).sort(function (a, b) { return a === 'AED' ? -1 : b === 'AED' ? 1 : a < b ? -1 : 1; }).forEach(function (c) {
+    Object.keys(cash).sort(function (a, b) { var o = ['AED', 'EGP', 'USD']; return (o.indexOf(a) + 9) % 12 - (o.indexOf(b) + 9) % 12 || (a < b ? -1 : 1); }).forEach(function (c) {
       h.push(tile(c, fmt(cash[c]), c === 'AED' ? '' : '≈ ' + fmt(cash[c] * (H.fx[c] || 0)) + ' AED'));
     });
     h.push('</div>');
-    h.push('<h2>Credit cards</h2><div class="list">');
+
+    if (G.bars || G.grams) {
+      var pl = G.value - G.cost, pct = G.cost ? pl / G.cost : 0, be = G.grams ? G.cost / G.grams * OZ : 0;
+      h.push('<h2>Gold</h2><div class="card"><div class="row"><div><div class="n" style="font-size:17px;font-weight:700">' + fmt(G.grams, 1) + ' g</div><div class="s mute">' + (G.bars || '') + ' bars · 24K</div></div>',
+        '<div style="text-align:right"><div class="num" style="font-size:22px;font-weight:700">' + fmt(G.value) + '</div><div class="mute">AED today</div></div></div>',
+        '<div class="kv"><div>Paid<b>' + fmt(G.cost) + ' AED</b></div>',
+        '<div>Profit / loss<b class="' + (pl < 0 ? 't-bad' : 't-good') + '">' + (pl >= 0 ? '+' : '') + fmt(pl) + ' (' + (pct >= 0 ? '+' : '') + (pct * 100).toFixed(1) + '%)</b></div>',
+        '<div>Price per gram<b>' + fmt(G.price, 2) + ' AED</b></div>',
+        '<div>Break-even per oz<b>' + fmt(be) + ' AED · $' + fmt(be / usd) + '</b></div>',
+        '<div>Today per oz<b>' + fmt(G.price * OZ) + ' AED · $' + fmt(G.price * OZ / usd) + '</b></div>',
+        '<div>Price updated<b>' + (G.updated ? esc(new Date(G.updated).toLocaleString('en-GB', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'})) : '-') + '</b></div></div></div>');
+    }
+    if (M) {
+      var paid = Math.max(0, Math.min(1, M.paidPct || 0));
+      h.push('<h2>Mortgage</h2><div class="card"><div class="row"><div><div style="font-size:17px;font-weight:700">' + esc(M.bank || 'Mortgage') + '</div><div class="s mute">Loan ' + fmt(M.loan) + ' ' + esc(M.cur) + '</div></div>',
+        '<div style="text-align:right"><div class="num" style="font-size:22px;font-weight:700">' + fmt(M.left || 0) + '</div><div class="mute">' + esc(M.cur) + ' left</div></div></div>',
+        '<div class="bar"><i class="c-good" style="width:' + Math.round(paid * 100) + '%"></i></div>',
+        '<div class="row mute small"><span>' + Math.round(paid * 100) + '% paid off</span><span>' + (M.monthsLeft != null ? fmt(M.monthsLeft) + ' instalments left' : '') + '</span></div>',
+        '<div class="kv"><div>Monthly instalment<b>' + (M.instalment != null ? fmt(M.instalment, 2) : '-') + '</b></div>',
+        '<div>Last instalment<b>' + (M.end ? esc(new Date(M.end).toLocaleDateString('en-GB', {month: 'short', year: 'numeric'})) : '-') + '</b></div>',
+        '<div>Interest still to pay<b>' + (M.interestLeft != null ? fmt(M.interestLeft) : '-') + '</b></div>',
+        '<div>Home equity<b>' + (M.equity != null ? fmt(M.equity) + ' AED' : '-') + '</b></div></div></div>');
+    }
+
+    h.push('<h2>Credit cards</h2>');
     H.cards.forEach(function (c) {
       var used = c.limit ? Math.min(1, Math.max(0, c.owed / c.limit)) : 0;
-      h.push('<div class="line"><div class="row"><span class="n">' + esc(c.id) + '</span><span class="num" style="font-weight:700">' + fmt(c.owed) + '</span></div>',
-        '<div class="bar"><i class="' + (used > .7 ? 'c-bad' : 'c-acc') + '" style="width:' + (used * 100).toFixed(1) + '%"></i></div>',
-        '<div class="r"><span>' + (c.stillDue > 0 ? '<span class="t-bad">' + fmt(c.stillDue, 2) + ' due ' + esc(day(c.due)) + '</span>' : 'Nothing due') + '</span><span>' + fmt(c.avail) + ' available</span></div>',
-        c.target ? '<div class="r" style="margin-top:4px"><span>Spend target ' + fmt(c.spent) + ' / ' + fmt(c.target) + '</span>' + pillFor(c.status) + '</div>' : '', '</div>');
+      var prog = c.target ? Math.min(1, c.spent / c.target) : 0;
+      var due = d(c.due), dueSoon = c.stillDue > 0 && due && (due - today) / 864e5 <= 5;
+      var met = c.target && c.spent >= c.target, fx = c.cur && c.cur !== 'AED' && H.fx[c.cur];
+      h.push('<div class="card"><div class="row"><div><div style="font-size:17px;font-weight:700">' + esc(c.id) + '</div><div class="s mute">' + esc(c.bank) + '</div></div>',
+        '<div style="text-align:right"><div class="num" style="font-size:22px;font-weight:700">' + fmt(c.owed) + '</div><div class="mute">' +
+          (fx ? fmt(c.owed / fx) + ' ' + esc(c.cur) + ' of ' + fmt(c.limit / fx) : 'owed of ' + fmt(c.limit)) + '</div></div></div>',
+        '<div class="bar"><i class="' + (used > .7 ? 'c-bad' : 'c-acc') + '" style="width:' + Math.round(used * 100) + '%"></i></div>',
+        '<div class="row mute small"><span>Available ' + fmt(c.avail) + '</span><span>' + Math.round(used * 100) + '% used</span></div>',
+        '<div class="kv"><div>Still due<b class="' + (c.stillDue > 0 ? (dueSoon ? 't-bad' : 't-warn') : 't-good') + '">' + (c.stillDue > 0 ? fmt(c.stillDue, 2) + ' by ' + esc(day(c.due)) : 'Nothing due') + '</b></div>',
+        '<div>Cycle ends<b>' + esc(day(c.cycleEnd)) + (c.daysLeft !== '' && c.daysLeft != null ? ' · ' + esc(c.daysLeft) + ' days' : '') + '</b></div></div>');
+      if (c.target) {
+        h.push('<div style="margin-top:12px" class="row"><span class="mute">Spend target</span>' + pillFor(c.status) + '</div>',
+          '<div class="bar"><i class="' + (met ? 'c-good' : 'c-warn') + '" style="width:' + Math.round(prog * 100) + '%"></i></div>',
+          '<div class="row mute small"><span>' + fmt(c.spent) + ' of ' + fmt(c.target) + '</span><span>' + (met ? 'Done' : fmt(c.target - c.spent) + ' to go · ' + fmt(c.perDay) + '/day') + '</span></div>');
+      }
+      h.push('</div>');
     });
-    h.push('</div><h2>Bank accounts</h2><div class="list">');
-    H.accts.slice().sort(function (x, y) { return y.aed - x.aed; }).forEach(function (a) {
+
+    h.push('<h2>Bank accounts</h2><div class="list">');
+    if (!H.accts.length) h.push('<div class="empty">No accounts yet.</div>');
+    H.accts.slice().sort(function (x, y) { var o = ['AED', 'EGP', 'USD']; return o.indexOf(x.cur) - o.indexOf(y.cur) || y.aed - x.aed; }).forEach(function (a) {
       h.push('<div class="li"><div><div class="t">' + esc(a.name) + '</div><div class="s">' + esc(a.bank) + (/\d/.test(a.last4) ? ' ··' + esc(String(a.last4).slice(-4)) : '') + (a.asOf ? ' · ' + esc(day(a.asOf)) : '') + '</div></div>',
-        '<div class="a num">' + fmt(a.bal) + ' <span class="s">' + esc(a.cur) + '</span>' + (a.cur !== 'AED' ? '<div class="s">≈ ' + fmt(a.aed) + ' AED</div>' : '') + '</div></div>');
+        '<div class="a num">' + fmt(a.bal, 2) + ' ' + esc(a.cur) + (a.cur !== 'AED' ? '<div class="s">≈ ' + fmt(a.aed) + ' AED</div>' : '') + '</div></div>');
     });
     h.push('</div>');
     return h.join('');
