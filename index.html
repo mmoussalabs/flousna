@@ -68,6 +68,17 @@ input:focus{border-color:var(--accent)}
 .msg{min-height:20px;font-size:14px;margin-top:10px}
 .empty{padding:18px 0;text-align:center;color:var(--mute)}
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:10px;font-size:13px;color:var(--mute)}.kv b{display:block;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.sheetbg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom) + 18px);max-height:88vh;overflow:auto;animation:up .18s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+.sheet h3{margin:0 0 4px;font-size:18px}.sheet .sub{color:var(--mute);font-size:13px;margin-bottom:14px}
+.sheet label{display:block;font-size:12px;color:var(--mute);margin:2px 2px 4px}
+select{width:100%;font:inherit;font-size:17px;padding:13px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);margin-bottom:10px;-webkit-appearance:none;appearance:none}
+.btn.ghost{background:var(--card);color:var(--ink);margin-top:8px;box-shadow:var(--shadow)}
+.fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 76px);width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:30px;line-height:1;box-shadow:0 6px 16px rgba(232,89,12,.4);z-index:20;cursor:pointer}
+.tap{cursor:pointer}.tap:active{opacity:.6}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 12px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:90vw}
 .foot{text-align:center;color:var(--mute);font-size:12px;margin-top:24px}
 </style>
 </head>
@@ -162,6 +173,79 @@ input:focus{border-color:var(--accent)}
   $('code').addEventListener('input', function () { if ($('code').value.replace(/\D/g, '').length === 6) $('verifyBtn').click(); });
   $('backBtn').onclick = function () { $('stepCode').classList.add('hidden'); $('stepEmail').classList.remove('hidden'); $('loginMsg').textContent = ''; };
 
+  // ------------------------------------------------------------ edit sheets
+  function toast(t) { var el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(function () { el.remove(); }, 2600); }
+  function closeSheet() { var b = document.querySelector('.sheetbg'); if (b) b.remove(); }
+  function openSheet(title, sub, fields, btn, send) {
+    closeSheet();
+    var bg = document.createElement('div'); bg.className = 'sheetbg';
+    bg.innerHTML = '<div class="sheet"><div class="grab"></div><h3>' + esc(title) + '</h3><div class="sub">' + sub + '</div>' + fields +
+      '<button class="btn" id="sheetOk">' + esc(btn) + '</button><button class="btn ghost" id="sheetNo">Cancel</button><div class="msg" id="sheetMsg"></div></div>';
+    document.body.appendChild(bg);
+    bg.onclick = function (e) { if (e.target === bg) closeSheet(); };
+    $('sheetNo').onclick = closeSheet;
+    $('sheetOk').onclick = function () {
+      var body;
+      try { body = send(); } catch (err) { $('sheetMsg').textContent = err.message; return; }
+      body.session = store.get('fl-session');
+      $('sheetOk').disabled = true; $('sheetMsg').textContent = 'Saving…';
+      call(body).then(function (r) {
+        $('sheetOk').disabled = false;
+        if (r.auth === false) { closeSheet(); store.del('fl-session'); showLogin('Please sign in again.'); return; }
+        if (!r.ok) { $('sheetMsg').textContent = r.error || 'Could not save.'; return; }
+        closeSheet(); state.data = r.data; render(); toast(r.message || 'Saved');
+      }).catch(function () { $('sheetOk').disabled = false; $('sheetMsg').textContent = 'No connection. Try again.'; });
+    };
+    var first = bg.querySelector('input,select'); if (first && first.type !== 'date') setTimeout(function () { first.focus(); }, 200);
+  }
+  function catSelect(id, selected) {
+    var list = (state.data.categoryList || []), h = ['<select id="' + id + '">'];
+    if (!selected) h.push('<option value="">Pick a category</option>');
+    var groups = {};
+    list.forEach(function (c) { (groups[c.line] = groups[c.line] || []).push(c.name); });
+    Object.keys(groups).forEach(function (g) {
+      h.push('<optgroup label="' + esc(g) + '">');
+      groups[g].forEach(function (n) { h.push('<option' + (n === selected ? ' selected' : '') + '>' + esc(n) + '</option>'); });
+      h.push('</optgroup>');
+    });
+    return h.join('') + '</select>';
+  }
+  var todayIso = function () { var t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+  var needAmount = function (id) { var v = parseFloat(String($(id).value).replace(/,/g, '')); if (!(v > 0)) throw new Error('Type the amount'); return v; };
+
+  function editCategory(r) {
+    openSheet('Change category', esc(r.desc) + '<br>' + fmt(r.aed, 2) + ' AED · ' + esc(day(r.date)) + ' · ' + esc(r.paidWith),
+      '<label>Category</label>' + catSelect('fCat', r.cat), 'Save', function () {
+        return {flousna: 'setCategory', date: r.date, desc: r.desc, aed: r.aed, paidWith: r.paidWith, category: $('fCat').value};
+      });
+  }
+  function addCash() {
+    openSheet('Add cash expense', 'For anything you paid in cash.',
+      '<label>Amount (AED)</label><input id="fAmt" type="text" inputmode="decimal" placeholder="0.00">' +
+      '<label>What for</label><input id="fDesc" type="text" placeholder="e.g. Car wash" maxlength="80">' +
+      '<label>Category</label>' + catSelect('fCat') + '<label>Date</label><input id="fDate" type="date" value="' + todayIso() + '">', 'Add', function () {
+        var a = needAmount('fAmt');
+        if (!$('fDesc').value.trim()) throw new Error('Type what it was for');
+        if (!$('fCat').value) throw new Error('Pick a category');
+        return {flousna: 'addCash', amount: a, desc: $('fDesc').value, category: $('fCat').value, date: $('fDate').value};
+      });
+  }
+  function markPaid(f) {
+    openSheet('Mark as paid', esc(f.name) + ' · budget ' + fmt(f.budget) + ' AED<br>Use this when the bank sent no message for it.',
+      '<label>Amount paid (AED)</label><input id="fAmt" type="text" inputmode="decimal" value="' + (f.budget || '') + '">' +
+      '<label>Date</label><input id="fDate" type="date" value="' + todayIso() + '">', 'Mark paid', function () {
+        return {flousna: 'markPaid', name: f.name, amount: needAmount('fAmt'), date: $('fDate').value};
+      });
+  }
+  function setBalance(a) {
+    openSheet('Update balance', esc(a.name) + ' · ' + esc(a.bank) + '<br>Now ' + fmt(a.bal, 2) + ' ' + esc(a.cur),
+      '<label>New balance (' + esc(a.cur) + ')</label><input id="fBal" type="text" inputmode="decimal" value="' + a.bal + '">', 'Save', function () {
+        var v = parseFloat(String($('fBal').value).replace(/,/g, ''));
+        if (isNaN(v)) throw new Error('Type the balance');
+        return {flousna: 'setBalance', last4: a.last4, name: a.name, cur: a.cur, balance: v};
+      });
+  }
+
   // ------------------------------------------------------------ data
   function load() {
     var s = store.get('fl-session');
@@ -182,6 +266,7 @@ input:focus{border-color:var(--accent)}
   });
 
   function render() {
+    state.view = {sp: [], ac: []};
     state.loadedAt = Date.now();
     var D = state.data;
     $('updated').textContent = 'Updated ' + new Date(D.holdings.now).toLocaleString('en-GB', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
@@ -192,6 +277,11 @@ input:focus{border-color:var(--accent)}
     Array.prototype.forEach.call(document.querySelectorAll('[data-cat]'), function (c) {
       c.onclick = function () { state.cat = c.dataset.cat || null; render(); };
     });
+    var fab = document.querySelector('.fab'); if (fab) fab.remove();
+    if (state.tab === 'spend') { fab = document.createElement('button'); fab.className = 'fab'; fab.textContent = '+'; fab.setAttribute('aria-label', 'Add cash expense'); fab.onclick = addCash; document.body.appendChild(fab); }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-sp]'), function (el) { el.onclick = function () { editCategory(state.view.sp[+el.dataset.sp]); }; });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fx]'), function (el) { el.onclick = function () { markPaid(state.data.budget.fixed[+el.dataset.fx]); }; });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ac]'), function (el) { el.onclick = function () { setBalance(state.view.ac[+el.dataset.ac]); }; });
     Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (c) {
       c.onclick = function () { state.tab = c.dataset.go; store.set('fl-tab', state.tab); render(); window.scrollTo(0, 0); };
     });
@@ -265,10 +355,11 @@ input:focus{border-color:var(--accent)}
     h.push('<h2>Bank accounts</h2><div class="list">');
     if (!H.accts.length) h.push('<div class="empty">No accounts yet.</div>');
     H.accts.slice().sort(function (x, y) { var o = ['AED', 'EGP', 'USD']; return o.indexOf(x.cur) - o.indexOf(y.cur) || y.aed - x.aed; }).forEach(function (a) {
-      h.push('<div class="li"><div><div class="t">' + esc(a.name) + '</div><div class="s">' + esc(a.bank) + (/\d/.test(a.last4) ? ' ··' + esc(String(a.last4).slice(-4)) : '') + (a.asOf ? ' · ' + esc(day(a.asOf)) : '') + '</div></div>',
+      state.view.ac.push(a);
+      h.push('<div class="li tap" data-ac="' + (state.view.ac.length - 1) + '"><div><div class="t">' + esc(a.name) + '</div><div class="s">' + esc(a.bank) + (/\d/.test(a.last4) ? ' ··' + esc(String(a.last4).slice(-4)) : '') + (a.asOf ? ' · ' + esc(day(a.asOf)) : '') + '</div></div>',
         '<div class="a num">' + fmt(a.bal, 2) + ' ' + esc(a.cur) + (a.cur !== 'AED' ? '<div class="s">≈ ' + fmt(a.aed) + ' AED</div>' : '') + '</div></div>');
     });
-    h.push('</div>');
+    h.push('</div><div class="mute small" style="margin:8px 4px 0">Tap an account to update its balance.</div>');
     return h.join('');
   }
   function tile(l, v, s) { return '<div class="tile"><div class="l">' + esc(l) + '</div><div class="v num">' + v + '</div><div class="s">' + (s || '') + '</div></div>'; }
@@ -291,11 +382,13 @@ input:focus{border-color:var(--accent)}
         '<div class="r"><span class="num">' + fmt(l.spent) + ' of ' + fmt(l.target) + (q ? ' · last 3 months ' + fmt(used) + ' of ' + fmt(tgt) : '') + '</span><span class="num">' + (l.left >= 0 ? fmt(l.left) + ' left' : '<span class="t-bad">' + fmt(-l.left) + ' over</span>') + '</span></div></div>');
     });
     h.push('</div><h2>Fixed payments</h2><div class="list">');
-    B.fixed.filter(function (f) { return f.budget || f.paid; }).forEach(function (f) {
-      h.push('<div class="li"><div><div class="t">' + esc(f.name) + '</div><div class="s">' + esc(f.paidBy) + ' · ' + esc(f.how) + '</div></div>',
+    B.fixed.forEach(function (f, i) {
+      if (!(f.budget || f.paid)) return;
+      var can = !/auto/i.test(f.how);
+      h.push('<div class="li' + (can ? ' tap" data-fx="' + i : '') + '"><div><div class="t">' + esc(f.name) + '</div><div class="s">' + esc(f.paidBy) + ' · ' + esc(f.how) + '</div></div>',
         '<div class="a"><div class="num">' + fmt(f.paid || f.budget) + '</div>' + pillFor(f.status) + '</div></div>');
     });
-    h.push('</div>');
+    h.push('</div><div class="mute small" style="margin:8px 4px 0">Tap a payment the bank did not tell us about to mark it paid.</div>');
     return h.join('');
   }
 
@@ -319,10 +412,12 @@ input:focus{border-color:var(--accent)}
     h.push('<div class="list">');
     if (!list.length) h.push('<div class="empty">Nothing here this month.</div>');
     list.forEach(function (r) {
-      h.push('<div class="li"><div><div class="t">' + esc(r.desc) + '</div><div class="s"><span class="dot" style="background:' + (colors[r.cat] || '#999') + '"></span>' + esc(r.cat) + ' · ' + esc(day(r.date)) + ' · ' + esc(r.paidWith) + (r.who && r.who !== 'MO' && r.who !== 'Family' ? ' · ' + esc(r.who) : '') + '</div></div>',
+      var can = r.paidWith !== 'Cash (auto)';
+      if (can) state.view.sp.push(r);
+      h.push('<div class="li' + (can ? ' tap" data-sp="' + (state.view.sp.length - 1) : '') + '"><div><div class="t">' + esc(r.desc) + '</div><div class="s"><span class="dot" style="background:' + (colors[r.cat] || '#999') + '"></span>' + esc(r.cat) + ' · ' + esc(day(r.date)) + ' · ' + esc(r.paidWith) + (r.who && r.who !== 'MO' && r.who !== 'Family' ? ' · ' + esc(r.who) : '') + '</div></div>',
         '<div class="a num ' + (r.aed < 0 ? 't-good' : '') + '">' + fmt(r.aed, 2) + '</div></div>');
     });
-    h.push('</div>');
+    h.push('</div><div class="mute small" style="margin:8px 4px 0">Tap a payment to change its category. Tap + to add a cash expense.</div>');
     return h.join('');
   }
 
